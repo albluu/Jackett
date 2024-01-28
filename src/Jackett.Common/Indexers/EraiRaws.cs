@@ -70,6 +70,8 @@ namespace Jackett.Common.Indexers
                 new DisplayInfoConfigurationItem("", "<p>Please note that the following stats are not available for this indexer. Default values are used instead. </p><ul><li>Files</li><li>Seeders</li><li>Leechers</li></ul>")
             );
 
+            configData.AddDynamic("release-group-prefix", new BoolConfigurationItem("Enable adding [Erai-Raws] prefix to the Title"));
+
             configData.AddDynamic("include-subs", new BoolConfigurationItem("Enable appending SubTitles to the Title"));
 
             // Config item for title detail parsing
@@ -100,6 +102,7 @@ namespace Jackett.Common.Indexers
         private string RSSKey => ((StringConfigurationItem)configData.GetDynamic("rssKey")).Value;
         private bool IsTitleDetailParsingEnabled => ((BoolConfigurationItem)configData.GetDynamic("title-detail-parsing")).Value;
         private bool IsSubsEnabled => ((BoolConfigurationItem)configData.GetDynamic("include-subs")).Value;
+        private bool IsReleaseGroupPrefixEnabled => ((BoolConfigurationItem)configData.GetDynamic("release-group-prefix")).Value;
 
         public string RssFeedUri => SiteLink + RSS_PATH + "&" + RSSKey;
 
@@ -217,6 +220,12 @@ namespace Jackett.Common.Indexers
                     guid = builder.Uri;
                 }
 
+                var releaseGroup = "";
+                if (IsReleaseGroupPrefixEnabled)
+                {
+                    releaseGroup = "[Erai-Raws] ";
+                }
+
                 var subs = "";
                 if (IsSubsEnabled)
                 {
@@ -224,7 +233,7 @@ namespace Jackett.Common.Indexers
                 }
                 yield return new ReleaseInfo
                 {
-                    Title = string.Concat(fi.Title, " - ", fi.Quality, subs),
+                    Title = string.Concat(releaseGroup, fi.Title, " - ", fi.Quality, subs),
                     Guid = guid,
                     MagnetUri = fi.MagnetLink,
                     InfoHash = fi.InfoHash,
